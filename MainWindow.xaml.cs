@@ -28,7 +28,7 @@ namespace _2048
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Case[][] cases;
+        public Case[][] cases;
         public MainWindow()
         {
             cases = new Case[4][];
@@ -58,8 +58,11 @@ namespace _2048
                 y2 = initPos.Next() % 4;
             } while (x2 == x1 && y2 == y1);
             cases[x2][y2].Init(2);
-            Console.WriteLine(x1);
-            Console.WriteLine(y1);
+            /*while (!lost())
+            {
+                applyMove(findBestMove(cases, 1));
+                System.Threading.Thread.Sleep(2000);
+            }*/
         }
 
         private void Clear()
@@ -71,6 +74,13 @@ namespace _2048
                     cases[i][j].hasMovedThisRound = false;
                 }
             }
+        }
+
+        public Move findBestMove(Case[][] currentStatus, int prof)
+        {
+            Move res = Move.LEFT;
+            Console.WriteLine(res);
+            return res;
         }
 
         private bool ColumnPlayable(int i, Move m)
@@ -105,6 +115,19 @@ namespace _2048
                     break;
             }
             return false;
+        }
+
+        public bool lost()
+        {
+            foreach (Move m in Enum.GetValues(typeof(Move)))
+            {
+                if (isPlayable(m))
+                {
+                    return false;
+                }
+            }
+            Console.WriteLine("perdu");
+            return true;
         }
 
         private bool RowPlayable(int i, Move m)
@@ -227,13 +250,12 @@ namespace _2048
             return new int[2] { i + offsetI, j + offsetJ };
         }
 
-        private void applyMove(Move m)
+        public void applyMove(Move m)
         {
             if (!isPlayable(m))
             {
                 return;
             }
-            Console.WriteLine(m);
             int[] indices;
             int[] temp;
             switch (m)
@@ -258,8 +280,6 @@ namespace _2048
             do
             {
                 tryToMove(indices[0], indices[1], m);
-                Console.WriteLine(indices[0]);
-                Console.WriteLine(indices[1]);
                 temp[0] = indices[0];
                 temp[1] = indices[1];
                 indices = Next(indices[0], indices[1], m);
@@ -395,6 +415,16 @@ namespace _2048
                     applyMove(Move.RIGHT);
                     break;
             }
+        }
+
+        private void Window_Loaded_1(object sender, EventArgs e)
+        {
+            while (!lost())
+            {
+                applyMove(findBestMove(cases, 6));
+                System.Threading.Thread.Sleep(2000);
+            }
+
         }
     }
 }
