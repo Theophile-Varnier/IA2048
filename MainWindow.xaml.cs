@@ -23,18 +23,20 @@ namespace _2048
         BOTTOM,
         LEFT
     }
+
     /// <summary>
     /// Logique d'interaction pour MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static int size = 4;
         public Case[][] cases;
         public MainWindow()
         {
-            cases = new Case[4][];
-            for (int i = 0; i < 4; i++)
+            cases = new Case[size][];
+            for (int i = 0; i < size; i++)
             {
-                cases[i] = new Case[4];
+                cases[i] = new Case[size];
             }
             InitializeComponent();
             for (int i = 0; i < MainGrid.Children.Count; i++)
@@ -42,20 +44,20 @@ namespace _2048
                 Case ca = MainGrid.Children[i] as Case;
                 if (ca != null)
                 {
-                    cases[i / 4][i % 4] = ca;
-                    cases[i / 4][i % 4].Init(0);
+                    cases[i / size][i % size] = ca;
+                    cases[i / size][i % size].Init(0);
                 }
             }
             Random initPos = new Random();
-            int x1 = initPos.Next() % 4;
-            int y1 = initPos.Next() % 4;
+            int x1 = initPos.Next() % size;
+            int y1 = initPos.Next() % size;
             int x2;
             int y2;
             cases[x1][y1].Init(2);
             do
             {
-                x2 = initPos.Next() % 4;
-                y2 = initPos.Next() % 4;
+                x2 = initPos.Next() % size;
+                y2 = initPos.Next() % size;
             } while (x2 == x1 && y2 == y1);
             cases[x2][y2].Init(2);
             /*while (!lost())
@@ -67,20 +69,107 @@ namespace _2048
 
         private void Clear()
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < size; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < size; j++)
                 {
                     cases[i][j].hasMovedThisRound = false;
                 }
             }
         }
 
-        public Move findBestMove(Case[][] currentStatus, int prof)
+        private List<int[]> emptyCases(Case[][] currentStatus)
         {
-            Move res = Move.LEFT;
-            Console.WriteLine(res);
+            List<int[]> res = new List<int[]>();
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (currentStatus[i][j].val == 0)
+                    {
+                        int[] emptyCase = new int[] { i, j };
+                        res.Add(emptyCase);
+                    }
+                }
+            }
             return res;
+        }
+
+        public void generateAlea(Case[][] plateau, int[] pos)
+        {
+            plateau[pos[0]][pos[1]].Init(2);
+        }
+
+        private Case[][] Copy(Case[][] source)
+        {
+            Case[][] res = new Case[size][];
+            for (int i = 0; i < size; i++)
+            {
+                res[i] = new Case[size];
+                for (int j = 0; j < size; j++)
+                {
+                    res[i][j] = source[i][j];
+                }
+            }
+            return res;
+        }
+
+        private int Max(Case[][] plateau)
+        {
+            int res = 0;
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (plateau[i][j].val > res)
+                    {
+                        res = plateau[i][j].val;
+                    }
+                }
+            }
+            return res;
+        }
+
+        public Move alphaBeta(Case[][] currentStatus, int prof)
+        {
+            Case[][] temp = Copy(currentStatus);
+            Move res = Move.LEFT;
+            int[] values = new int[size];
+            return res;
+        }
+
+        public void findBestMove(Case[][] currentStatus, int prof)
+        {
+            Move res = alphaBeta(currentStatus, prof);
+            Console.WriteLine(res);
+            Key moveToApply;
+            var routedEvent = Keyboard.KeyDownEvent;
+            var target = Keyboard.FocusedElement;
+            switch (res)
+            {
+                case Move.LEFT:
+                    moveToApply = Key.Left;
+                    break;
+                case Move.RIGHT:
+                    moveToApply = Key.Right;
+                    break;
+                case Move.TOP:
+                    moveToApply = Key.Up;
+                    break;
+                case Move.BOTTOM:
+                    moveToApply = Key.Down;
+                    break;
+                default:
+                    moveToApply = Key.Left;
+                    break;
+            }
+            target.RaiseEvent(
+                new KeyEventArgs(
+                    Keyboard.PrimaryDevice,
+                    PresentationSource.FromVisual(this),
+                    0,
+                    moveToApply) { RoutedEvent = routedEvent });
+            
         }
 
         private bool ColumnPlayable(int i, Move m)
@@ -88,7 +177,7 @@ namespace _2048
             switch (m)
             {
                 case Move.TOP:
-                    for (int x = 1; x < 4; x++)
+                    for (int x = 1; x < size; x++)
                     {
                         if (cases[x][i].val == 0)
                         {
@@ -135,7 +224,7 @@ namespace _2048
             switch (m)
             {
                 case Move.LEFT:
-                    for (int x = 1; x < 4; x++)
+                    for (int x = 1; x < size; x++)
                     {
                         if (cases[i][x].val == 0)
                         {
@@ -170,7 +259,7 @@ namespace _2048
             {
                 case Move.TOP:
                 case Move.BOTTOM:
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < size; i++)
                     {
                         if (ColumnPlayable(i, m))
                         {
@@ -180,7 +269,7 @@ namespace _2048
                     break;
                 case Move.LEFT:
                 case Move.RIGHT:
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < size; i++)
                     {
                         if (RowPlayable(i, m))
                         {
@@ -285,12 +374,14 @@ namespace _2048
                 indices = Next(indices[0], indices[1], m);
             }while (indices[0] != temp[0] || indices[1] != temp[1]);
             Random rand = new Random();
-            do
+            /*do
             {
-                indices[0] = rand.Next()%4;
-                indices[1] = rand.Next()%4;
-            } while (cases[indices[0]][indices[1]].val != 0);
-            cases[indices[0]][indices[1]].Init(2);
+                indices[0] = rand.Next()%size;
+                indices[1] = rand.Next()%size;
+            } while (cases[indices[0]][indices[1]].val != 0);*/
+            List<int[]> emptyCases = this.emptyCases(cases);
+            int index = rand.Next() % emptyCases.Count();
+            generateAlea(cases, emptyCases[index]);
             this.Clear();
         }
 
@@ -420,9 +511,9 @@ namespace _2048
         private void Window_Loaded_1(object sender, EventArgs e)
         {
             while (!lost())
+            //for(int i = 0; i < size; i++)
             {
-                applyMove(findBestMove(cases, 6));
-                System.Threading.Thread.Sleep(2000);
+                findBestMove(cases, 6);
             }
 
         }

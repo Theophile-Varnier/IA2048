@@ -69,14 +69,14 @@ namespace _2048
 
         public void Init(int val)
         {
-            this._val = val;
+            this.val = val;
             RaisePropertyChanged("val");
-            this._backColor = new SolidColorBrush(Color.FromScRgb(1, (float)(val % 7)/7, (float)(val % 8)/8, (float)(val % 3)/3));
+            this._backColor = new SolidColorBrush(Color.FromScRgb(1, (float)(val % 7) / 7, (float)(val % 8) / 8, (float)(val % 3) / 3));
             RaisePropertyChanged("backColor");
         }
         public void Merge()
         {
-            this._val = this._val * 2;
+            this.val = this.val * 2;
             RaisePropertyChanged("val");
             this._backColor = new SolidColorBrush(Color.FromScRgb(1, (float)(_val % 7) / 7, (float)(_val % 8) / 8, (float)(_val % 3) / 3));
             RaisePropertyChanged("backColor");
